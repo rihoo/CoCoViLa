@@ -737,7 +737,7 @@ public class RuntimeProperties {
     
     private static FontChooser fontChooser;
     
-    static void openFontChooser( JFrame parent ) {
+    public static void openFontChooser( JFrame parent ) {
         
         if( fontChooser != null ) {
             fontChooser.toFront();

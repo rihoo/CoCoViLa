@@ -80,10 +80,26 @@ public class GObj implements Serializable, Cloneable,
 
     public boolean contains( int pointX, int pointY ) {
         Point p = toObjectSpace( pointX, pointY );
-
+//        System.out.println("GObj contains point p " + p);
+//        System.out.println("getX() " + getX() );
+//        System.out.println("getY() " + getY());
+//        System.out.println("getXsize() " + getXsize());
+//        System.out.println("getYsize() " + getYsize());
+//        System.out.println("getWidth() " + getWidth());
+//        System.out.println("getHeight " + getHeight());
+//        System.out.println(" getPortOffsetX2(), getPortOffsetY2() " + getPortOffsetX2() +"," + getPortOffsetY2());
+//        
+//        System.out.println("( p.x > getX() + (int) ( getXsize() * getPortOffsetX1() ) ) && ( p.y > getY() + (int) ( getYsize() * getPortOffsetY1() ) )"
+//        		+ (( p.x > getX() + (int) ( getXsize() * getPortOffsetX1() ) ) && ( p.y > getY() + (int) ( getYsize() * getPortOffsetY1() ) )) );
+//
+//        System.out.println(p.x < getX() + (int) ( getXsize() * ( getWidth() + getPortOffsetX2() ) ) );
+//        
+//        System.out.println(( p.y < getY() + (int) ( getYsize() * ( getHeight() + getPortOffsetY2() ) ) ));
+        
         if ( ( p.x > getX() + (int) ( getXsize() * getPortOffsetX1() ) ) && ( p.y > getY() + (int) ( getYsize() * getPortOffsetY1() ) ) ) {
             if ( ( p.x < getX() + (int) ( getXsize() * ( getWidth() + getPortOffsetX2() ) ) && ( p.y < getY()
                     + (int) ( getYsize() * ( getHeight() + getPortOffsetY2() ) ) ) ) ) {
+//            	System.out.println("return TRUE");
                 return true;
             }
         }
@@ -197,7 +213,9 @@ public class GObj implements Serializable, Cloneable,
 
     @Override
     public String toString() {
-        return getName();
+        // FIXME
+    	// return getName();
+    	return  getName() + "[x,y="+getX()+","+getY()+"], [width,height="+getWidth()+","+getHeight()+"]";
     }
 
     public boolean isStrict() {
@@ -306,6 +324,7 @@ public class GObj implements Serializable, Cloneable,
 
     protected void draw( int xPos, int yPos, float _Xsize, float _Ysize, Graphics2D g2 ) {
         Shape s;
+//        System.out.println("GObj draw xPos, yPos, _Xsize, _Ysize " + xPos+","+yPos+","+Xsize+","+Ysize);
         for ( int i = 0; i < getShapes().size(); i++ ) {
             s = getShapes().get( i );
             s.draw( xPos, yPos, _Xsize, _Ysize, g2 );

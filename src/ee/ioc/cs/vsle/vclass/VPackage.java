@@ -1,10 +1,11 @@
 package ee.ioc.cs.vsle.vclass;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
 
-import ee.ioc.cs.vsle.ccl.*;
-import ee.ioc.cs.vsle.util.FileFuncs.*;
+import ee.ioc.cs.vsle.ccl.PackageClassLoader;
+import ee.ioc.cs.vsle.ccl.RunnerClassLoader;
+import ee.ioc.cs.vsle.util.FileFuncs.GenStorage;
 
 /**
  * <p>Title: ee.ioc.cs.editor.vclass.VPackage</p>
@@ -21,7 +22,7 @@ public class VPackage implements ee.ioc.cs.vsle.api.Package {
     private String path;
     private ArrayList<PackageClass> classes = new ArrayList<PackageClass>();
     private PackageClassLoader classLoader;
-
+    
     /**
      * Are there any classes with custom painters in this package?
      */
@@ -91,6 +92,17 @@ public class VPackage implements ee.ioc.cs.vsle.api.Package {
         public String getPath() {
             return path;
         }
+        
+        public String getPackageDir() {
+        	String packageDir = "";
+			try {
+				File f = new File(path);
+				packageDir = f.getParent();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+        	 return packageDir;
+        }        
 
 		/**
 		 * @param name the name to set

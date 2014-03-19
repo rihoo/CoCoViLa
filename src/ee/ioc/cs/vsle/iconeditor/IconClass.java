@@ -174,7 +174,7 @@ public class IconClass {
     /**
      * @return the componentType
      */
-    PackageClass.ComponentType getComponentType() {
+    public PackageClass.ComponentType getComponentType() {
         return componentType;
     }
 

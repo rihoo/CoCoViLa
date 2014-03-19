@@ -2,7 +2,6 @@ package ee.ioc.cs.vsle.graphics;
 
 import java.io.*;
 import java.util.*;
-
 import java.awt.*;
 
 public abstract class Shape implements Serializable, Cloneable {

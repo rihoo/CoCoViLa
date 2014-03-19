@@ -21,7 +21,7 @@ import ee.ioc.cs.vsle.vclass.Point;
  * Time: 23:18:00
  */
 
-class IconMouseOps extends MouseInputAdapter implements ActionListener {
+public class IconMouseOps extends MouseInputAdapter implements ActionListener {
 
     IconEditor editor;
     int shapeCount;
@@ -66,6 +66,7 @@ class IconMouseOps extends MouseInputAdapter implements ActionListener {
      * @param state String - state of the application.
      */
     public void setState( String state ) {
+    	System.out.println("IconMouseOps setState " + state);
         this.state = state;
 
         if (State.chooseColor.equals(state)) {
@@ -339,6 +340,7 @@ class IconMouseOps extends MouseInputAdapter implements ActionListener {
      */
     @Override
     public void mouseClicked( MouseEvent e ) {
+    	System.out.println("IconMouseOps mouseClicked: " + state );
         int x, y;
         x = e.getX();
         y = e.getY();
@@ -464,6 +466,7 @@ class IconMouseOps extends MouseInputAdapter implements ActionListener {
      */
     @Override
     public void mousePressed( MouseEvent e ) {
+    	System.out.println("IconMouseOps mousePressed: " + state );
         editor.mouseX = e.getX();
         editor.mouseY = e.getY();
         mouseState = "pressed";
@@ -754,6 +757,7 @@ class IconMouseOps extends MouseInputAdapter implements ActionListener {
      */
     @Override
     public void mouseReleased( MouseEvent e ) {
+    	System.out.println("IconMouseOps mouseReleased: " + state );
         int x = e.getX();
         int y = e.getY();
         Cursor cursor = new Cursor( Cursor.DEFAULT_CURSOR );

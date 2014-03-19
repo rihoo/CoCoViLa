@@ -697,6 +697,36 @@ public class PackageXmlProcessor extends AbstractXmlProcessor {
         }
     }
     
+    public void removePackageClass( PackageClass pClass ) {
+
+    	Document doc;
+        try {
+            doc = getDocument();
+        } catch ( Exception e ) {
+            e.printStackTrace();
+            return;
+        }
+        
+        String name = pClass.getName();
+        
+        //check if such class exists and remove it
+        Element rootEl = doc.getDocumentElement();
+        NodeList classEls = rootEl.getElementsByTagName( EL_CLASS );
+        for( int i = 0; i < classEls.getLength(); i++ ) {
+            Element nameEl = getElementByName( (Element)classEls.item( i ), EL_NAME );
+            if( name.equals( nameEl.getTextContent() ) ) {
+                rootEl.removeChild( classEls.item( i ) );
+            }
+        }
+        
+        //write
+        try {
+            writeDocument( doc, new FileOutputStream( xmlFile ) );
+        } catch ( FileNotFoundException e ) {
+            e.printStackTrace();
+        }
+    }    
+    
     private Node generateFieldNode( Document doc, ClassField field ) {
         Element fieldEl = doc.createElement( EL_FIELD );
         
