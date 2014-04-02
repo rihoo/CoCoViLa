@@ -15,11 +15,11 @@ import javax.swing.KeyStroke;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 
+import ee.ioc.cs.vsle.common.gui.AboutDialog;
+import ee.ioc.cs.vsle.common.gui.LicenseDialog;
 import ee.ioc.cs.vsle.editor.CustomFileFilter;
 import ee.ioc.cs.vsle.editor.Menu;
 import ee.ioc.cs.vsle.editor.RuntimeProperties;
-import ee.ioc.cs.vsle.iconeditor.AboutDialog;
-import ee.ioc.cs.vsle.iconeditor.LicenseDialog;
 import ee.ioc.cs.vsle.packageparse.PackageXmlProcessor;
 import ee.ioc.cs.vsle.util.SystemUtils;
 import ee.ioc.cs.vsle.util.db;
@@ -219,9 +219,7 @@ public class EditorActionListener implements ActionListener {
 	        Canvas canvas = ClassEditor.getInstance().getCurrentCanvas();
 	    	canvas.openClassCodeViewer( ClassEditor.className );
 	    } else if ( e.getActionCommand().equals( Menu.EXPORT_TO_PACKAGE ) ) {
-	    	// TODO
-	    	System.out.println(Menu.EXPORT_TO_PACKAGE);
-//		        editor.exportShapesToPackage(); // append the graphics to a package
+	    	ClassEditor.getInstance().exportShapesToPackage(); // append the graphics to a package
 	    } else if ( e.getActionCommand().equals( Menu.IMPORT_FROM_PACKAGE ) ) {
 	    	ClassEditor.getInstance().loadClass();
 	    } else if ( e.getActionCommand().equals( Menu.CREATE_PACKAGE ) ) {
@@ -241,7 +239,6 @@ public class EditorActionListener implements ActionListener {
                     VPackage pkg;
                     if ( (pkg = PackageXmlProcessor.load(file)) != null ) {
                         RuntimeProperties.setLastPath( file.getAbsolutePath() );
-                        System.out.println(file.getAbsolutePath());
                         Canvas curCanvas = ClassEditor.getInstance().getCurrentCanvas();
                         ClassEditor classEditor = ClassEditor.getInstance();
                         if (curCanvas != null) {
@@ -263,12 +260,12 @@ public class EditorActionListener implements ActionListener {
     }
 
 
-    private boolean notifyOnNullPackage( VPackage pk ) {
-        if ( pk == null ) {
-            JOptionPane.showMessageDialog( ClassEditor.getInstance(), "No package loaded", "Error", JOptionPane.ERROR_MESSAGE );
-            return true;
-        }
-        return false;
-    }
+//    private boolean notifyOnNullPackage( VPackage pk ) {
+//        if ( pk == null ) {
+//            JOptionPane.showMessageDialog( ClassEditor.getInstance(), "No package loaded", "Error", JOptionPane.ERROR_MESSAGE );
+//            return true;
+//        }
+//        return false;
+//    }
     
 }

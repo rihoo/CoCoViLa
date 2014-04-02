@@ -124,6 +124,28 @@ public class ClassFieldsTableModel extends DefaultTableModel {
 		}
 		fireTableDataChanged();
 	}
+	
+	/**
+	 * Returns number on empty rows
+	 */
+	public int getEmptyRowsCount() {
+		int emptyRows = 0;
+		for (int i = 0; i < dataVector.size(); i++) {
+			Vector<String> row = dataVector.get(i);
+			boolean empty = true;
+			for (String cell : row) {
+				// Search for non-empty strings, no need to check for null
+				// as values are initialized to "".
+				if (!"".equals(cell)) {
+					empty = false;
+					break;
+				}
+			}
+			if (empty)
+				emptyRows++;
+		}
+		return emptyRows;
+	}		
 
 	/**
 	 * Comparator for sorting row vectors by a column.

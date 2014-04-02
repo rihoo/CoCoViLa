@@ -7,6 +7,8 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.undo.*;
 
+import ee.ioc.cs.vsle.common.gui.AboutDialog;
+import ee.ioc.cs.vsle.common.gui.LicenseDialog;
 import ee.ioc.cs.vsle.editor.scheme.*;
 import ee.ioc.cs.vsle.event.*;
 import ee.ioc.cs.vsle.iconeditor.*;
@@ -243,6 +245,10 @@ public class EditorActionListener implements ActionListener {
                     Editor.getInstance().getCurrentCanvas().setGridVisible(
                             !Editor.getInstance().getCurrentCanvas().isGridVisible() );
                 }
+            } else if ( e.getActionCommand().equals( Menu.SNAP_TO_GRID ) ) {
+
+                RuntimeProperties.setSnapToGrid( !RuntimeProperties.getSnapToGrid() );
+                               
             } else if ( e.getActionCommand().equals( Menu.CONTROL_PANEL ) ) {
                 if ( Editor.getInstance().getCurrentCanvas() != null ) {
                     Editor.getInstance().getCurrentCanvas().setCtrlPanelVisible(

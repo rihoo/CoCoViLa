@@ -48,7 +48,10 @@ import ee.ioc.cs.vsle.editor.Palette;
 import ee.ioc.cs.vsle.editor.ProgramRunnerEvent;
 import ee.ioc.cs.vsle.editor.RuntimeProperties;
 import ee.ioc.cs.vsle.editor.SchemeLoader;
+import ee.ioc.cs.vsle.editor.State;
 import ee.ioc.cs.vsle.event.EventSystem;
+import ee.ioc.cs.vsle.graphics.BoundingBox;
+import ee.ioc.cs.vsle.graphics.Shape;
 import ee.ioc.cs.vsle.packageparse.PackageXmlProcessor;
 import ee.ioc.cs.vsle.util.PrintUtilities;
 import ee.ioc.cs.vsle.util.VMath;
@@ -355,6 +358,9 @@ public class Canvas extends JPanel implements ISchemeContainer {
 
         @Override
         public String getPresentationName() {
+        	if (object.getClassName() == null) {
+        		return "Insert";
+        	}
             return "Insert " + object.getClassName();
         }
 
@@ -836,6 +842,20 @@ public class Canvas extends JPanel implements ISchemeContainer {
         currentPainter = null;
         setActionInProgress( false );
     }
+    
+    public void addObject( GObj obj ) {
+        if ( obj == null )
+            throw new IllegalStateException( "Object is null" );
+
+        getScheme().getObjectList().add(obj);
+        ArrayList<Connection> newConns = null;
+
+        undoSupport.postEdit( new AddObjectEdit( this, obj, currentPainter, newConns ) );
+
+        setCurrentObj( null );
+        currentPainter = null;
+        setActionInProgress( false );
+    }    
 
     /**
      * Examines the strict ports of the object and creates new connections where
@@ -1367,6 +1387,7 @@ public class Canvas extends JPanel implements ISchemeContainer {
 
         @Override
         protected void paintComponent( Graphics g ) {
+        	System.out.println("Drawing area paintComponent " + mListener.state);
             Connection rel;
             Graphics2D g2 = (Graphics2D) g;
 
@@ -1397,6 +1418,8 @@ public class Canvas extends JPanel implements ISchemeContainer {
                         p.paint( g2, scale );
                 }
             }
+            // hide or show BoundingBox
+            iconPalette.boundingbox.setEnabled( !isBBPresent() );
 
             g2.setColor( Color.blue );
             g2.setStroke(connectionStroke);
@@ -1405,28 +1428,72 @@ public class Canvas extends JPanel implements ISchemeContainer {
                 rel.drawRelation( g2 );
             }
 
-            if ( isConnectionBeingAdded() ) {
-                // adding connection, first port connected
-                currentCon.drawRelation( g2, mouseX, mouseY );
-            } else if ( isRelObjBeingAdded() ) {
-                // adding relation object, first port connected
+            // a shape width negative height or width cannot be drawn
+            int rectX = Math.min( mListener.startX, mouseX );
+            int rectY = Math.min( mListener.startY, mouseY );
+            int width = Math.abs( mouseX - mListener.startX );
+            int height = Math.abs( mouseY - mListener.startY );
+            
+            if ( mListener.state.equals( State.drawArc1 ) ) {
+                g.drawRect( mListener.startX, mListener.startY, mListener.arcWidth, mListener.arcHeight );
+                g.drawLine( mListener.startX + mListener.arcWidth / 2, mListener.startY + mListener.arcHeight / 2, mouseX,
+                        mouseY );
+            } else if ( mListener.state.equals( State.drawArc2 ) ) {
+                if ( mListener.fill ) {
+                    g2.fillArc( mListener.startX, mListener.startY, mListener.arcWidth, mListener.arcHeight,
+                            mListener.arcStartAngle, mListener.arcAngle );
 
-                RelObj obj = (RelObj) currentObj;
-                Point point = VMath.getRelClassStartPoint( obj.getStartPort(), mouseX, mouseY );
-                obj.setEndPoints( point.x, point.y, mouseX, mouseY );
-
-                currentObj.drawClassGraphics( g2, scale );
-            } else if ( currentObj != null && mListener.mouseOver ) {
-                currentObj.drawClassGraphics( g2, scale );
-            } else if ( mListener.state.equals( State.dragBox ) ) {
-                g2.setColor( Color.gray );
-                // a shape width negative height or width cannot be drawn
-                int rectX = Math.min( mListener.startX, mouseX );
-                int rectY = Math.min( mListener.startY, mouseY );
-                int width = Math.abs( mouseX - mListener.startX );
-                int height = Math.abs( mouseY - mListener.startY );
-                g2.drawRect( rectX, rectY, width, height );
+                } else {
+                    g2.drawArc( mListener.startX, mListener.startY, mListener.arcWidth, mListener.arcHeight,
+                            mListener.arcStartAngle, mListener.arcAngle );
+                }
             }
+            
+            if ( !mListener.mouseState.equals( "released" ) ) {
+
+            	if ( mListener.state.equals( State.dragBox ) 
+            			|| mListener.state.equals( State.boundingbox )) {
+	                g2.setColor( Color.gray );
+	                g2.drawRect( rectX, rectY, width, height );
+	            } else {
+	            	
+	                int red = mListener.color.getRed();
+	                int green = mListener.color.getGreen();
+	                int blue = mListener.color.getBlue();
+
+	                int alpha = mListener.getTransparency();
+	                g2.setColor( new Color( red, green, blue, alpha ) );
+
+	                if ( mListener.lineType > 0 ) {
+	                    g2.setStroke( new BasicStroke( mListener.strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+	                            50, new float[] { mListener.lineType, mListener.lineType }, 0 ) );
+	                } else {
+	                    g2.setStroke( new BasicStroke( mListener.strokeWidth ) );
+	                }
+	                
+	                if ( mListener.state.equals( State.drawRect ) ) {
+		                g2.setColor( mListener.color );
+		                g2.drawRect( rectX, rectY, width, height );
+		            } else if ( mListener.state.equals( State.drawFilledRect ) ) {
+		                g2.setColor( mListener.color );
+		                g2.fillRect( rectX, rectY, width, height );    
+                    } else if ( mListener.state.equals( State.drawLine ) ) {
+                        g2.drawLine( mListener.startX, mListener.startY, mouseX, mouseY );		                
+		            } else if ( mListener.state.equals( State.drawOval ) ) {
+		            	g2.setColor( mListener.color );
+		                g2.drawOval( rectX, rectY, width, height );
+		            } else if ( mListener.state.equals( State.drawFilledOval ) ) {
+		            	g2.setColor( mListener.color );
+		                g2.fillOval( rectX, rectY, width, height );
+                    } else if ( mListener.state.equals( State.drawArc ) ) {
+                        g.drawRect( rectX, rectY, width, height );
+                    } else if ( mListener.state.equals( State.drawFilledArc ) ) {
+                        g.drawRect( rectX, rectY, width, height );
+                    }
+	            }
+            	
+            }
+                
 
             g2.scale( 1.0f / scale, 1.0f / scale );
         }
@@ -2013,5 +2080,18 @@ public class Canvas extends JPanel implements ISchemeContainer {
     
     public void setPackage(VPackage vPackage) {
     	this.vPackage = vPackage;
+    }
+    
+    public boolean isBBPresent() {
+        boolean isBbPresent = false;
+        for (GObj obj : getObjectList()) {
+            for (Shape shape : obj.getShapes()) {
+				if (shape instanceof BoundingBox) {
+					isBbPresent = true;
+					break;
+				}
+			}
+        }
+        return isBbPresent;
     }
 }

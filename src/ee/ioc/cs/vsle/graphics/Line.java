@@ -331,28 +331,28 @@ public class Line extends Shape implements Serializable {
     /**
      * @param startX the startX to set
      */
-    void setStartX( int startX ) {
+    public void setStartX( int startX ) {
         this.startX = startX;
     }
 
     /**
      * @param startY the startY to set
      */
-    void setStartY( int startY ) {
+    public void setStartY( int startY ) {
         this.startY = startY;
     }
 
     /**
      * @param endX the endX to set
      */
-    void setEndX( int endX ) {
+    public void setEndX( int endX ) {
         this.endX = endX;
     }
 
     /**
      * @param endY the endY to set
      */
-    void setEndY( int endY ) {
+    public void setEndY( int endY ) {
         this.endY = endY;
     }
 
@@ -411,5 +411,16 @@ public class Line extends Shape implements Serializable {
     public int getFixedY2() {
         return fixedY2;
     }
+    
+    /**
+     * @return (endY - startY) / (endX - startX)
+     */    
+    public double getK() {
+        double k = (double) (getEndY() - getStartY()) / (getEndX() - getStartX());
+        if (Double.isInfinite(k) || Double.isNaN(k)) {
+        	k = 0;
+        }
+        return k;
+    }    
 
 }

@@ -16,31 +16,24 @@ import ee.ioc.cs.vsle.editor.RuntimeProperties;
 import ee.ioc.cs.vsle.editor.State;
 import ee.ioc.cs.vsle.graphics.Arc;
 import ee.ioc.cs.vsle.graphics.BoundingBox;
+import ee.ioc.cs.vsle.graphics.Image;
 import ee.ioc.cs.vsle.graphics.Line;
 import ee.ioc.cs.vsle.graphics.Oval;
 import ee.ioc.cs.vsle.graphics.Rect;
 import ee.ioc.cs.vsle.graphics.Shape;
 import ee.ioc.cs.vsle.graphics.Text;
-import ee.ioc.cs.vsle.util.VMath;
 import ee.ioc.cs.vsle.vclass.Connection;
 import ee.ioc.cs.vsle.vclass.GObj;
-import ee.ioc.cs.vsle.vclass.ObjectList;
-import ee.ioc.cs.vsle.vclass.PackageClass;
 import ee.ioc.cs.vsle.vclass.Point;
 import ee.ioc.cs.vsle.vclass.Port;
-import ee.ioc.cs.vsle.vclass.RelObj;
 
 /**
  * Mouse operations on Canvas.
  */
 public class MouseOps extends MouseInputAdapter {
 
-	
-    // Remove a dragged breakpoint on mouse button release when it is closer
-    // to the line segment between neighbouring points than this threshold.
-    private static double BP_REMOVE_THRESHOLD = 200d;
-
     String state = State.selection;
+    String mouseState = "";
     int startX, startY;
     boolean mouseOver;
 
@@ -57,7 +50,6 @@ public class MouseOps extends MouseInputAdapter {
     
     private Canvas canvas;
     private Point draggedBreakPoint;
-    private Connection draggedBreakPointConn;
     private GObj draggedObject;
     private int cornerClicked;
     private Port currentPort;
@@ -116,17 +108,6 @@ public class MouseOps extends MouseInputAdapter {
 	
 	        this.state = state;
         }
-//        if ( State.addRelation.equals( state ) ) {
-//            canvas.setCursor( Cursor.getPredefinedCursor( Cursor.CROSSHAIR_CURSOR ) );
-//        } else if ( State.selection.equals( state ) ) {
-//            canvas.setCursor( Cursor.getPredefinedCursor( Cursor.DEFAULT_CURSOR ) );
-//            canvas.palette.resetButtons();
-//        } else if ( State.isAddRelClass( state ) ) {
-//            canvas.setCursor( Cursor.getPredefinedCursor( Cursor.CROSSHAIR_CURSOR ) );
-//        } else if ( State.isAddObject( state ) ) {
-//            canvas.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
-//            canvas.startAddingObject();
-//        }
         
         if ( State.addRelation.equals( state ) ) {
             canvas.setCursor( Cursor.getPredefinedCursor( Cursor.CROSSHAIR_CURSOR ) );
@@ -142,10 +123,18 @@ public class MouseOps extends MouseInputAdapter {
     }
 
     private void openTextEditor( int x, int y ) {
-    	System.out.println("ClassEditor.getInstance() " + ClassEditor.getInstance());
         new TextDialog( ClassEditor.getInstance(), x, y ).setVisible( true );
     } // openTextEditor
     
+    
+    /**
+     * Open the dialog for specifying port properties. Returns port to the
+     * location the dialog was opened from. Dialog is modal and aligned
+     * to the center of the open application window.
+     */
+    private void openPortPropertiesDialog() {
+        new PortPropertiesDialog( ClassEditor.getInstance(), null ).setVisible( true );
+    } // openPortPropertiesDialog    
     
     /**
      * Draws port on the drawing area of the ClassEditor.
@@ -171,9 +160,8 @@ public class MouseOps extends MouseInputAdapter {
         obj.setName("port");            
         obj.setPorts(ports);
         System.out.println("GObj " + obj.toString());
-        ObjectList objectList = canvas.getScheme().getObjectList();
-        objectList.add(obj);
-        canvas.getScheme().setObjects(objectList);  
+        
+        canvas.addObject(obj);  
         canvas.repaint();
     } // drawPort
     
@@ -183,50 +171,27 @@ public class MouseOps extends MouseInputAdapter {
         
         GObj obj = new GObj();
         p.setObject(obj);
-        obj.setX(canvas.mouseX);
-        obj.setY(canvas.mouseY);
+        obj.setX(0);
+        obj.setY(0);
         
         obj.setHeight(p.getHeight());
         obj.setWidth(p.getWidth());     
         obj.setName("port");            
         obj.setPorts(ports);
+        
         System.out.println("GObj " + obj.toString());
-        ObjectList objectList = canvas.getScheme().getObjectList();
-        objectList.add(obj);
-        canvas.getScheme().setObjects(objectList);  
+
+        canvas.addObject(obj);
         canvas.repaint();
     } // drawPort    
      
-    
-    /**
-     * Open the dialog for specifying port properties. Returns port to the
-     * location the dialog was opened from. Dialog is modal and aligned
-     * to the center of the open application window.
-     */
-    // TODO
-    private void openPortPropertiesDialog() {
-    	System.out.println("openPortPropertiesDialog");
-        new PortPropertiesDialog( ClassEditor.getInstance(), null ).setVisible( true );
-    } // openPortPropertiesDialog
-    
     /**
      * Draws text on the drawing area of the IconEditor.
      * @param font Font - font used for drawing the text.
      * @param color Color - font color.
      * @param text String - the actual string of text drawn.
      */
-    // TODO
     public void drawText( Font font, Color color, String text, int x, int y ) {
-//        Shape shape = editor.getSelectedShape();
-//        if ( shape != null && shape instanceof Text ) {
-//            shape.setColor( color );
-//            ( (Text) shape ).setFont( font );
-//            ( (Text) shape ).setText( text );
-//        } else {
-//            Text t = new Text( x, y, font, Shape.createColorWithAlpha( color, getTransparency() ), text );
-//            editor.shapeList.add( t );
-//        }
-        
         Text t = new Text( x, y, font, Shape.createColorWithAlpha( color, getTransparency() ), text );
         addShape(t);
         
@@ -234,7 +199,6 @@ public class MouseOps extends MouseInputAdapter {
     } // drawText   
     
     public void changeTransparency( int transparencyPercentage ) {
-    	System.out.println("changeTransparency " + transparencyPercentage);
     	this.transparency = transparencyPercentage;
     	ArrayList<GObj> selectedObjs = canvas.getScheme().getObjectList().getSelected();
     	for (GObj gObj : selectedObjs) {
@@ -250,7 +214,6 @@ public class MouseOps extends MouseInputAdapter {
      * @param lineType - selected line type icon name.
      */
     public void changeLineType( int lineType ) {
-    	System.out.println("changeLineType " + lineType);
     	this.lineType = lineType;
     	ArrayList<GObj> selectedObjs = canvas.getScheme().getObjectList().getSelected();
     	for (GObj gObj : selectedObjs) {
@@ -266,7 +229,6 @@ public class MouseOps extends MouseInputAdapter {
     * @param strokeW double - stroke width selected from the spinner.
     */
     public void changeStrokeWidth( float strokeW ) {
-    	System.out.println("changeStrokeWidth " + strokeW);
     	this.strokeWidth = strokeW;
     	ArrayList<GObj> selectedObjs = canvas.getScheme().getObjectList().getSelected();
     	for (GObj gObj : selectedObjs) {
@@ -281,22 +243,52 @@ public class MouseOps extends MouseInputAdapter {
         ArrayList<Shape> shapes = new ArrayList<Shape>();
         shapes.add(s);
         GObj obj = new GObj();
-        System.out.println("shape " + s.toText());
-        System.out.println("addShape x " + s.getX() + " y " + s.getY() + " h " + s.getHeight() + " w " + s.getWidth());
+        System.out.println("1. shape " + s.toText());
+        System.out.println("2. addShape x " + s.getX() + " y " + s.getY() + " h " + s.getHeight() + " w " + s.getWidth());
         obj.setX(s.getX());
         obj.setY(s.getY());
-        // TODO this is a hack to get GObj and Shape to play nice with each other
-        s.setX(0);
-        s.setY(0);
-        System.out.println("shape " + s.toText());
         obj.setHeight(s.getHeight());
-        obj.setWidth(s.getWidth());     
+        obj.setWidth(s.getWidth()); 
+        
+        if (s instanceof Rect || s instanceof Oval || s instanceof Arc
+        		|| s instanceof BoundingBox || s instanceof Text || s instanceof Image) {
+	        s.setX(0);
+	        s.setY(0);
+        }
+        else if (s instanceof Line) {
+        	int minX = Math.min( ((Line) s).getStartX(), ((Line) s).getEndX() );
+        	int minY = Math.min( ((Line) s).getStartY(), ((Line) s).getEndY()  );
+
+        	obj.setX(minX);
+            obj.setY(minY);
+            
+            double k = ((Line) s).getK();
+
+            if (k >= 0) {
+	            ((Line) s).setStartX(0);
+	            ((Line) s).setStartY(0);
+	            ((Line) s).setEndX(s.getWidth());
+	            ((Line) s).setEndY(s.getHeight());
+            } else {
+            	((Line) s).setStartX(s.getWidth());
+	            ((Line) s).setStartY(0);
+	            ((Line) s).setEndX(0);
+	            ((Line) s).setEndY(s.getHeight());
+            }
+        }        
+
+        System.out.println("OBJECT X,Y,H,W " + obj.getX() + ", " + obj.getY()+ ", " + obj.getHeight()+ ", " + obj.getWidth());
+        System.out.println("////////// shape " + s.toText());
+  
+        if (s instanceof Text) {
+        	obj.setHeight(15);
+            obj.setWidth(50); 
+        }
+        
         obj.setName(s.getClass().getName());
         obj.setShapes(shapes);
-        System.out.println("GObj shape " + obj.toString());
-        ObjectList objectList = canvas.getScheme().getObjectList();
-        objectList.add(obj);
-        canvas.getScheme().setObjects(objectList);    	
+
+        canvas.addObject(obj);
     }
     /**
      * Mouse entered event from the MouseMotionListener. Invoked when the mouse
@@ -325,6 +317,11 @@ public class MouseOps extends MouseInputAdapter {
         ObjectPopupMenu popupMenu = new ObjectPopupMenu( obj, canvas );
         popupMenu.show( canvas, x, y );
     }
+    
+    private void openPortPopupMenu( IconPort port, int x, int y ) {
+        IconPortPopupMenu popupMenu = new IconPortPopupMenu( port, ClassEditor.getInstance() );
+        popupMenu.show( canvas, x, y );
+    } // openPortPopupMenu    
 
     /**
      * Mouse clicked event from the MouseListener. Invoked when the mouse button
@@ -360,104 +357,39 @@ public class MouseOps extends MouseInputAdapter {
         }
         // LISTEN RIGHT MOUSE BUTTON
         if ( SwingUtilities.isRightMouseButton( e ) ) {
-            // TODO
-//        	popupMenuListener( x, y );
-        	
             GObj obj = canvas.getObjectList().checkInside( x, y );
-//            if ( obj != null || canvas.getObjectList().getSelectedCount() > 1  ) {
-//            	if (obj.getPorts() != null) {
-//            		openPortPopupMenu( p, x, y );
-//            	} else {
-//            		openObjectPopupMenu( obj, e.getX() + canvas.drawingArea.getX(), e.getY() + canvas.drawingArea.getY() );
-//            	}
-//            }
             if ( obj != null || canvas.getObjectList().getSelectedCount() > 1 ) {
-                openObjectPopupMenu( obj, e.getX() + canvas.drawingArea.getX(), e.getY() + canvas.drawingArea.getY() );
+            	if (obj.getPortList() != null && !obj.getPortList().isEmpty()) {
+            		Port port = obj.getPortList().get(0);
+            		IconPort p = new IconPort(port.getName(), port.getX(), port.getY(), port.isArea(), port.isStrict(), port.isMulti());
+            		p.setType(port.getType());
+            		openPortPopupMenu( p, e.getX() + canvas.drawingArea.getX(), e.getY() + canvas.drawingArea.getY() );
+            	} else { 
+            		openObjectPopupMenu( obj, e.getX() + canvas.drawingArea.getX(), e.getY() + canvas.drawingArea.getY() );
+            	}
             }        	
         } // END OF LISTENING RIGHT MOUSE BUTTON
         else {
-            if ( state.equals( State.addRelation ) ) {
-                // **********Relation adding code**************************
-                Port port = canvas.getObjectList().getPort( x, y );
-                if ( port != null ) {
-                    if ( canvas.currentCon == null ) {
-                        if ( port.canBeConnected() )
-                            canvas.startAddingConnection( port );
-                    } else {
-                        Port firstPort = canvas.currentCon.getBeginPort();
-                        if ( port.canBeConnectedTo( firstPort ) ) {
-                            if ( port == firstPort ) {
-                                // Connecting a port to itself does not make
-                                // any sense, so do not allow it.
-                                canvas.cancelAdding();
-                            } else {
-                                canvas.addCurrentConnection( port );
-                            }
-                        }
-                    }
-                } else {
-                    // double click on the background cancels relation adding,
-                    // one click on the background adds a new breakpoint.
-                    if ( canvas.currentCon != null ) {
-                        if ( e.getClickCount() == 2 )
-                            canvas.cancelAdding();
-                        else
-                            canvas.currentCon.addBreakPoint( new Point( x, y ) );
-                    }
-                }
-
-            } else if ( state.equals( State.selection ) ) {
+            if ( state.equals( State.selection ) ) {
                 // **********Selecting objects code*********************
-            	System.out.println("HERE Selecting objects code");
                 if ( !e.isShiftDown() ) {
                     canvas.getObjectList().clearSelected();
                     canvas.getConnections().clearSelected();
                 }
-
-                Connection con = canvas.getConnectionNearPoint( x, y );
-
-                if ( con != null ) {
-                    con.setSelected( true );
-                } else {
-                	System.out.println("x, y " + x + ", "+y +"canvas.getObjectList() " + canvas.getObjectList());
-                    GObj obj = canvas.getObjectList().checkInside(x, y);
-                    System.out.println("HERE Selecting objects code GObj obj " + obj);
-                    if ( obj != null ) {
-                        obj.setSelected( true );
-                        // FIXME
-//                        if (SwingUtilities.isLeftMouseButton(e)
-//                                && e.getClickCount() >= 2)
-//                            canvas.openPropertiesDialog(obj);
-//                        else 
-                        if (SwingUtilities.isMiddleMouseButton(e))
-                            canvas.openClassCodeViewer(obj.getClassName());
-                        else
-                            canvas.setCurrentObj( obj );
+                
+                GObj obj = canvas.getObjectList().checkInside(x, y);
+                if ( obj != null ) {
+                    obj.setSelected( true );
+                    if (SwingUtilities.isMiddleMouseButton(e)) {
+                    	if (ClassEditor.className != null)
+                    	canvas.openClassCodeViewer(ClassEditor.className);
+                    } else {
+                        canvas.setCurrentObj( obj );
                     }
                 }
 
             } else {
-                if ( State.isAddRelClass( state ) ) {
-                    Port port = canvas.getObjectList().getPort(x, y);
-
-                    if ( port != null ) {
-                        PackageClass obj = canvas.getPackage().getClass( State.getClassName( state ) );
-
-                        // Relation classes must have exactly 2 ports. Although
-                        // package parser should have already catched this an
-                        // additional check does not hurt.
-                        if ( obj.getPorts().size() != 2 )
-                            return;
-
-                        if ( canvas.getCurrentObj() == null ) {
-                            if ( port.canBeConnectedTo( obj.getPorts().get( 0 ) ) )
-                                canvas.startAddingRelObject( port );
-                        } else {
-                            if ( port.canBeConnectedTo( obj.getPorts().get( 1 ) ) )
-                                canvas.addCurrentObject( port );
-                        }
-                    }
-                } else if ( canvas.getCurrentObj() != null ) {
+                if ( canvas.getCurrentObj() != null ) {
                     canvas.addCurrentObject();
                     setState( State.selection );
                 }
@@ -471,7 +403,7 @@ public class MouseOps extends MouseInputAdapter {
     @Override
     public void mousePressed( MouseEvent e ) {
     	System.out.println("MouseOps mousePressed " + state);
-    	
+    	mouseState = "pressed";
         if ( !( state.equals( State.drawArc1 ) || state.equals( State.drawArc2 ) ) ) {
             startX = e.getX();
             startY = e.getY();
@@ -483,16 +415,7 @@ public class MouseOps extends MouseInputAdapter {
             canvas.mouseY = Math.round( e.getY() / canvas.getScale() );
             Connection con = canvas.getConnectionNearPoint( canvas.mouseX, canvas.mouseY );
 
-            if ( con != null ) {
-                Point bp = con.breakPointContains(canvas.mouseX, canvas.mouseY);
-                if (bp != null) {
-                    startBreakPointDrag(con, bp);
-                } else {
-                    obj = canvas.getObjectList().checkInside(canvas.mouseX, canvas.mouseY);
-                }
-            } else {
-                obj = canvas.getObjectList().checkInside(canvas.mouseX, canvas.mouseY);
-            }
+            obj = canvas.getObjectList().checkInside(canvas.mouseX, canvas.mouseY);
 
             if ( obj != null ) {
                 if ( e.isShiftDown() ) {
@@ -520,7 +443,6 @@ public class MouseOps extends MouseInputAdapter {
                 }
             }
         }
-        System.out.println("mousePressed startX, startY : " + startX + ", " +startY);
         canvas.setActionInProgress( true );
     }
 
@@ -535,15 +457,7 @@ public class MouseOps extends MouseInputAdapter {
 
         canvas.setPosInfo( x, y );
 
-        if ( State.dragBreakPoint.equals( state ) ) {
-            if ( RuntimeProperties.getSnapToGrid() ) {
-                draggedBreakPoint.x = Math.round( (float) x / RuntimeProperties.getGridStep() ) * RuntimeProperties.getGridStep();
-                draggedBreakPoint.y = Math.round( (float) y / RuntimeProperties.getGridStep() ) * RuntimeProperties.getGridStep();
-            } else {
-                draggedBreakPoint.x = x;
-                draggedBreakPoint.y = y;
-            }
-        } else if ( State.drag.equals( state ) ) {
+        if ( State.drag.equals( state ) ) {
             int moveX, moveY;
 
             if ( RuntimeProperties.getSnapToGrid() ) {
@@ -682,17 +596,10 @@ public class MouseOps extends MouseInputAdapter {
 
             }
         }        
-
-        // Check if port needs to be hilighted because of mouseover.
-        // A repaint() is always necessary when adding connections and the
-        // mouse has moved because the disconnected end has to follow the mouse.
-        if ( state.equals( State.addRelation ) ) {
-            updateConnectionPortHilight( x, y );
-            canvas.drawingArea.repaint();
-        } else if ( State.isAddRelClass( state ) ) {
-            updateRelClassPortHilight( x, y );
-            canvas.drawingArea.repaint();
-        } else if ( State.isAddObject( state ) && canvas.getCurrentObj() != null ) {
+        if ( state.equals( State.drawArc1 ) || state.equals( State.drawArc2 ) )
+        	canvas.drawingArea.repaint();
+        
+        if ( State.isAddObject( state ) && canvas.getCurrentObj() != null ) {
             // if we're adding a new object...
 
             if ( RuntimeProperties.getSnapToGrid() ) {
@@ -732,76 +639,6 @@ public class MouseOps extends MouseInputAdapter {
 
         canvas.mouseX = x;
         canvas.mouseY = y;
-    }
-
-    /**
-     * Hilights the port under the mouse cursor when adding a relation class and
-     * the port of the relation class can be connected to the mouseover port.
-     * 
-     * @param x the X coordinate of the mouse cursor
-     * @param y the Y coordinate of the mouse cursor
-     */
-    private void updateRelClassPortHilight( int x, int y ) {
-        Port port = canvas.getObjectList().getPort(x, y);
-        RelObj curObj = (RelObj) canvas.getCurrentObj();
-
-        if ( currentPort != null && currentPort != port ) {
-            if ( curObj == null || curObj.getStartPort() != currentPort )
-                currentPort.setSelected( false );
-
-            currentPort = null;
-        }
-
-        if ( port != null && currentPort == null ) {
-            if ( curObj != null ) {
-                // hilight the second port only if its type is compatible
-                // with the first already connected port
-                if ( port.canBeConnectedTo( curObj.getStartPort() ) ) {
-                    port.setSelected( true );
-                    currentPort = port;
-                }
-            } else {
-                port.setSelected( true );
-                currentPort = port;
-            }
-        }
-    }
-
-    /**
-     * Hilights the port the connection could be attached to.
-     * 
-     * @see #updateRelClassPortHilight(int, int)
-     * @param x the X coordinate of the mouse cursor
-     * @param y the Y coordinate of the mouse cursor
-     */
-    /*
-     * The logic for adding connections and relation classes is quite similar,
-     * is is possible to generalise and merge these methods?
-     */
-    private void updateConnectionPortHilight( int x, int y ) {
-        Port port = canvas.getObjectList().getPort(x, y);
-
-        if ( currentPort != null && currentPort != port ) {
-            if ( canvas.currentCon == null || canvas.currentCon.getBeginPort() != currentPort ) {
-                currentPort.setSelected( false );
-            }
-            currentPort = null;
-        }
-
-        if ( port != null && currentPort == null ) {
-            if ( canvas.currentCon != null ) {
-                // hilight the second port only if its type is compatible
-                // with the first already connected port
-                Port firstPort = canvas.currentCon.getBeginPort();
-                if ( port.canBeConnectedTo( firstPort ) ) {
-                    port.setSelected( true );
-                    currentPort = port;
-                }
-            } else if ( port.canBeConnected() ) {
-                port.setSelected( true );
-                currentPort = port;
-            }
-        }
     }
 
     /**
@@ -846,9 +683,9 @@ public class MouseOps extends MouseInputAdapter {
     @Override
     public void mouseReleased( MouseEvent e ) {
     	System.out.println("MouseOps mouseReleased: " + state);
-        if ( state.equals( State.dragBreakPoint ) ) {
-            endBreakPointDrag();
-        } else if ( state.equals( State.drag ) ) {
+    	mouseState = "released";
+
+        if ( state.equals( State.drag ) ) {
             if ( !SwingUtilities.isLeftMouseButton( e ) )
                 return;
             state = State.selection;
@@ -872,19 +709,15 @@ public class MouseOps extends MouseInputAdapter {
 
             if ( state.equals( State.boundingbox ) ) {
                 BoundingBox box = new BoundingBox( Math.min( startX, canvas.mouseX ), Math.min( startY, canvas.mouseY ), width, height );
-                // TODO
-//                editor.boundingbox = box;
-                // ONLY ONE BOUNDING BOX IS ALLOWED.
                 addShape(box);
-                canvas.iconPalette.boundingbox.setEnabled( false );
                 state = State.selection;
             } else {
-	            System.out.println("startX, startY " + startX + ", " + this.startY);
-	            System.out.println("canvas.mouseX, canvas.mouseY " + canvas.mouseX + ", " + canvas.mouseY);
-	            System.out.println(" Math.min( startX, canvas.mouseX ) " +  Math.min( startX, canvas.mouseX ));
-	            System.out.println(" Math.min( startY, canvas.mouseY ) " + Math.min( startY, canvas.mouseY ));
-	            System.out.println("width, height " + width + "," + height);
-	            System.out.println("fill, strokeWidth, lineType " + this.fill + ", " + this.strokeWidth + ", " + this.lineType);
+//	            System.out.println("startX, startY " + startX + ", " + this.startY);
+//	            System.out.println("canvas.mouseX, canvas.mouseY " + canvas.mouseX + ", " + canvas.mouseY);
+//	            System.out.println(" Math.min( startX, canvas.mouseX ) " +  Math.min( startX, canvas.mouseX ));
+//	            System.out.println(" Math.min( startY, canvas.mouseY ) " + Math.min( startY, canvas.mouseY ));
+//	            System.out.println("width, height " + width + "," + height);
+//	            System.out.println("fill, strokeWidth, lineType " + this.fill + ", " + this.strokeWidth + ", " + this.lineType);
 	            Rect rect = new Rect( Math.min( startX, canvas.mouseX ), Math.min( startY, canvas.mouseY ), width, height, 
 	                    Shape.createColorWithAlpha( color, getTransparency() ), fill, strokeWidth, lineType );
 	            addShape(rect);
@@ -923,14 +756,12 @@ public class MouseOps extends MouseInputAdapter {
         	GObj obj = canvas.getObjectList().checkInside(canvas.mouseX, canvas.mouseY); 
         	if (obj != null) {
         		obj.setSelected(true);
-        		// TODO check for bounding box
         		canvas.deleteSelectedObjects();
         	}
             canvas.drawingArea.repaint();
         } else if ( state.equals( State.drawText ) ) {
             openTextEditor( canvas.mouseX, canvas.mouseY );
         } else if ( state.equals( State.addPort ) ) {
-        	// TODO
             openPortPropertiesDialog();
         } else if ( state.equals( State.insertImage ) ) {
             openImageDialog();
@@ -948,84 +779,14 @@ public class MouseOps extends MouseInputAdapter {
      * image to the location the dialog was opened from. Dialog
      * is modal and aligned to the center of the open application window.
      */
- // TODO
     private void openImageDialog() {
         if ( ClassEditor.getInstance().checkPackage() )
             new ImageDialog( ClassEditor.getInstance(), null ).setVisible( true );
     } // openTextEditor    
 
-    private void startBreakPointDrag(Connection con, Point bp) {
-        draggedBreakPoint = bp;
-        draggedBreakPointConn = con;
-        setState(State.dragBreakPoint);
-        con.setSelected(true);
-        canvas.drawingArea.repaint();
-    }
-
-    private void endBreakPointDrag() {
-        setState(State.selection);
-
-        // Remove the dragged breakpoint if it is on a straight line
-        // or close to another breakpoint or endpoint.
-        if (draggedBreakPoint != null && draggedBreakPointConn != null) {
-            ArrayList<Point> ps = draggedBreakPointConn.getBreakPoints();
-            assert ps != null;
-            int n = ps.indexOf(draggedBreakPoint);
-            assert n >= 0 && n < ps.size();
-
-            // Find neighbour anchor points, could be breakpoints or ports
-            Point p1, p2;
-            if (n == 0) {
-                p1 = draggedBreakPointConn.getBeginPort().getAbsoluteCenter();
-            } else {
-                p1 = ps.get(n - 1);
-            }
-            if (n == ps.size() - 1) {
-                p2 = draggedBreakPointConn.getEndPort().getAbsoluteCenter();
-            } else {
-                p2 = ps.get(n + 1);
-            }
-
-            // Remove the dragged breakpoint if it lies on an almost
-            // straight line.
-            double d = (draggedBreakPoint.x - p1.x) * (p2.y - p1.y)
-                     - (draggedBreakPoint.y - p1.y) * (p2.x - p1.x);
-
-            if (Math.abs(d) < BP_REMOVE_THRESHOLD) {
-                ps.remove(draggedBreakPoint);
-                draggedBreakPoint = null;
-            }
-
-            // Remove the breakpoint if it is close to another breakpoint
-            if (draggedBreakPoint != null) {
-                d = VMath.distanceBetweenPoints(p2, draggedBreakPoint);
-                if (d < Connection.NEAR_DISTANCE * 3) {
-                    draggedBreakPointConn.removeBreakPoint(n);
-                    draggedBreakPoint = null;
-                }
-            }
-            if (draggedBreakPoint != null) {
-                d = VMath.distanceBetweenPoints(p1, draggedBreakPoint);
-                if (d < Connection.NEAR_DISTANCE * 3) {
-                    draggedBreakPointConn.removeBreakPoint(n);
-                    draggedBreakPoint = null;
-                }
-            }
-
-            // a breakpoint was removed, redrawing is needed
-            if (draggedBreakPoint == null) {
-                canvas.drawingArea.repaint();
-            }
-        }
-        draggedBreakPoint = null;
-        draggedBreakPointConn = null;
-    }
-    
     void destroy() {
-        
         canvas = null;
         draggedBreakPoint = null;
-        draggedBreakPointConn = null;
         draggedObject = null;
         currentPort = null;
     }

@@ -125,8 +125,8 @@ public class IconPalette extends PaletteBase {
         image = createButton("images/image.png", "Insert Image", State.insertImage);
         text = createButton("images/text.gif", "Text", State.drawText);
         line = createButton("images/line.gif", "Line", State.drawLine);
-//        arc = createButton("images/arc.gif", "Arc", State.drawArc);
-//        filledarc = createButton("images/fillarc.gif", "Filled arc", State.drawFilledArc);
+        arc = createButton("images/arc.gif", "Arc", State.drawArc);
+        filledarc = createButton("images/fillarc.gif", "Filled arc", State.drawFilledArc);
         rectangle = createButton("images/rect.gif", "Rectangle", State.drawRect);
         filledrectangle = createButton("images/fillrect.gif", "Filled rectangle", State.drawFilledRect);
         oval = createButton("images/oval.gif", "Oval", State.drawOval);

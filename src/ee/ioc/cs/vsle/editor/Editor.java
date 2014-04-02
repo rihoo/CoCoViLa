@@ -46,6 +46,7 @@ public class Editor extends JFrame implements ChangeListener {
     public static final String WINDOW_TITLE = "CoCoViLa - Scheme Editor";
 
     private JCheckBoxMenuItem gridCheckBox;
+    private JCheckBoxMenuItem snapToGridCheckBox;
     private JCheckBoxMenuItem ctrlCheckBox;
     private JCheckBoxMenuItem showPortCheckBox;
     private JCheckBoxMenuItem showObjectNamesCheckBox;
@@ -212,6 +213,10 @@ public class Editor extends JFrame implements ChangeListener {
         gridCheckBox.addActionListener( getActionListener() );
         menu.add( gridCheckBox );
         
+        snapToGridCheckBox = new JCheckBoxMenuItem( Menu.SNAP_TO_GRID, true );
+        snapToGridCheckBox.addActionListener( getActionListener() );
+        menu.add( snapToGridCheckBox );           
+        
         ctrlCheckBox = new JCheckBoxMenuItem( Menu.CONTROL_PANEL, RuntimeProperties.isShowControls() );
         ctrlCheckBox.setMnemonic( 'C' );
         ctrlCheckBox.addActionListener( getActionListener() );
@@ -236,6 +241,7 @@ public class Editor extends JFrame implements ChangeListener {
                     return;
                 
                 gridCheckBox.setSelected( canvas.isGridVisible() );
+                snapToGridCheckBox.setSelected( RuntimeProperties.getSnapToGrid() );
                 ctrlCheckBox.setSelected( canvas.isCtrlPanelVisible() );
                 showPortCheckBox.setSelected( canvas.isDrawPorts() );
                 showObjectNamesCheckBox.setSelected( canvas.isShowObjectNames() );
@@ -797,6 +803,7 @@ public class Editor extends JFrame implements ChangeListener {
         Canvas canvas = getCurrentCanvas();
         if ( canvas != null ) {
             gridCheckBox.setSelected( canvas.isGridVisible() );
+            snapToGridCheckBox.setSelected( RuntimeProperties.getSnapToGrid());
             ctrlCheckBox.setSelected( canvas.isCtrlPanelVisible() );
             canvas.drawingArea.repaint();
             canvas.drawingArea.requestFocusInWindow();

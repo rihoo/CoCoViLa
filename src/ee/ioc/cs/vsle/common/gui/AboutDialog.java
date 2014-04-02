@@ -1,4 +1,4 @@
-package ee.ioc.cs.vsle.iconeditor;
+package ee.ioc.cs.vsle.common.gui;
 
 import ee.ioc.cs.vsle.editor.*;
 import ee.ioc.cs.vsle.util.db;

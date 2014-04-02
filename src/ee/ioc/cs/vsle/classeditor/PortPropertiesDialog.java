@@ -5,6 +5,12 @@ import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_DOUBLE;
 import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_INT;
 import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_OBJECT;
 import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_STRING;
+import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_LONG;
+import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_FLOAT;
+import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_SHORT;
+import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_BYTE;
+import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_BOOLEAN;
+import static ee.ioc.cs.vsle.util.TypeUtil.TYPE_CHAR;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
@@ -22,6 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
 import ee.ioc.cs.vsle.util.StringUtil;
+import ee.ioc.cs.vsle.util.TypeUtil;
 
 public class PortPropertiesDialog extends JDialog implements ActionListener {
 
@@ -79,6 +86,13 @@ public class PortPropertiesDialog extends JDialog implements ActionListener {
 		cbPortType.addItem("");
 		cbPortType.addItem(TYPE_INT);
 		cbPortType.addItem(TYPE_DOUBLE);
+		
+		cbPortType.addItem(TYPE_LONG);
+		cbPortType.addItem(TYPE_FLOAT);
+		cbPortType.addItem(TYPE_SHORT);
+		cbPortType.addItem(TYPE_BYTE);
+		cbPortType.addItem(TYPE_BOOLEAN);
+		cbPortType.addItem(TYPE_CHAR);
 		cbPortType.addItem(TYPE_OBJECT);
 		cbPortType.addItem(TYPE_STRING);
 		cbPortType.addItem(TYPE_ALIAS);
@@ -154,6 +168,10 @@ public class PortPropertiesDialog extends JDialog implements ActionListener {
 			if (type != null) {
 				type = type.trim();
 				setPortType(type);
+				
+				if (TypeUtil.isArray(type)) {
+					type = type.substring(0, type.indexOf("[]"));
+				}
 			}
 			
 			if (type == null || type.length() < 1) {

@@ -1,5 +1,9 @@
 package ee.ioc.cs.vsle.classeditor;
 
+import static ee.ioc.cs.vsle.iconeditor.ClassFieldsTableModel.iNAME;
+import static ee.ioc.cs.vsle.iconeditor.ClassFieldsTableModel.iTYPE;
+import static ee.ioc.cs.vsle.iconeditor.ClassFieldsTableModel.iVALUE;
+
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -52,15 +56,18 @@ import ee.ioc.cs.vsle.graphics.Shape;
 import ee.ioc.cs.vsle.iconeditor.ChooseClassDialog;
 import ee.ioc.cs.vsle.iconeditor.ClassFieldsTableModel;
 import ee.ioc.cs.vsle.iconeditor.ClassImport;
+import ee.ioc.cs.vsle.iconeditor.ClassPropertiesDialog;
 import ee.ioc.cs.vsle.iconeditor.DeleteClassDialog;
 import ee.ioc.cs.vsle.iconeditor.IconClass;
 import ee.ioc.cs.vsle.packageparse.PackageXmlProcessor;
 import ee.ioc.cs.vsle.synthesize.Synthesizer;
+import ee.ioc.cs.vsle.util.FileFuncs;
 import ee.ioc.cs.vsle.util.GraphicsExporter;
 import ee.ioc.cs.vsle.util.SystemUtils;
 import ee.ioc.cs.vsle.util.db;
 import ee.ioc.cs.vsle.vclass.ClassField;
 import ee.ioc.cs.vsle.vclass.ClassGraphics;
+import ee.ioc.cs.vsle.vclass.GObj;
 import ee.ioc.cs.vsle.vclass.PackageClass;
 import ee.ioc.cs.vsle.vclass.PackageClass.ComponentType;
 import ee.ioc.cs.vsle.vclass.Port;
@@ -112,7 +119,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
     
     private ClassFieldsTableModel dbrClassFields = new ClassFieldsTableModel();
     
-    // TODO
     ArrayList<IconClass> packageClassList = new ArrayList<IconClass>();
     ArrayList<ClassField> fields = new ArrayList<ClassField>();    
     ArrayList<String> packageClassNamesList = new ArrayList<String>();
@@ -296,7 +302,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
         
         showObjectNamesCheckBox = new JCheckBoxMenuItem( Menu.SHOW_NAMES, false );
         showObjectNamesCheckBox.addActionListener( getActionListener() );
-//        menu.add( showObjectNamesCheckBox );
         
         //sync View with current canvas
         menu.getPopupMenu().addPopupMenuListener( new PopupMenuListener() {
@@ -310,7 +315,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
                 
                 gridCheckBox.setSelected( canvas.isGridVisible() );
                 snapToGridCheckBox.setSelected( RuntimeProperties.getSnapToGrid() );
-//                ctrlCheckBox.setSelected( canvas.isCtrlPanelVisible() );
                 showPortCheckBox.setSelected( canvas.isDrawPorts() );
                 showObjectNamesCheckBox.setSelected( canvas.isShowObjectNames() );
             }
@@ -939,61 +943,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
         return null;
     }
     
-//    /**
-//     * Returns XML representing shapes on the screen.
-//     * 
-//     * @param appendXMLtag - append xml formatting or not.
-//     * @return StringBuilder - XML representing shapes on the screen.
-//     */
-//    public StringBuilder getShapesInXML( boolean appendXMLtag ) {
-//        StringBuilder xmlBuffer = new StringBuilder();
-//        if ( appendXMLtag ) {
-//            xmlBuffer.append( "<?xml version='1.0' encoding='utf-8'?>\n" );
-//            xmlBuffer.append( "\n" );
-//        }
-//        xmlBuffer.append( "<class type=\"" ).append( componentType.getXmlName() ).append(  "\">\n" );
-//        xmlBuffer.append( "	<name>" ).append(  IconEditor.className ).append(  "</name>\n" );
-//        xmlBuffer.append( "	<description>" ).append(  IconEditor.classDescription ).append(  "</description>\n" );
-//        String _classIcon = IconEditor.getClassIcon();
-////        if ( classIcon != null && classIcon.lastIndexOf( "/" ) >= 0 )
-////            classIcon = classIcon.substring( classIcon.lastIndexOf( "/" ) + 1 );
-////        if ( classIcon != null && classIcon.lastIndexOf( "\\" ) >= 0 )
-////            classIcon = classIcon.substring( classIcon.lastIndexOf( "\\" ) + 1 );
-//        xmlBuffer.append( "	<icon>" ).append(  _classIcon ).append(  "</icon>\n" );
-//        xmlBuffer = appendShapes( xmlBuffer );
-//        xmlBuffer = appendPorts( xmlBuffer );
-//        xmlBuffer = appendClassFields( xmlBuffer );
-//        xmlBuffer.append( "</class>\n" );
-//
-//        return xmlBuffer;
-//    } // getShapesInXML
-//    
-//    /*
-//     * Make class
-//     */
-//    public void makeClass( IconClass icon ) {
-//        // find coordinates for the class
-//        classX = ( drawingArea.getWidth() / 2 ) - icon.getMaxWidth() / 2;
-//        classY = ( drawingArea.getHeight() / 2 ) - icon.getMaxHeight() / 2;
-//        shapeList = icon.getShapeList();
-//        icon.shiftPorts( classX, classY );
-//        shapeList.shift( classX, classY );
-//        ports = icon.getPorts();
-//        fields = icon.getFields();
-//        emptyClassFields();
-//        for ( int i = 0; i < fields.size(); i++ ) {
-//
-//            String[] row = { ( fields.get( i ) ).getName(), ( fields.get( i ) ).getType(), ( fields.get( i ) ).getValue() };
-//            dbrClassFields.addRow( row );
-//        }
-//        ClassEditor.className = icon.getName();
-//        ClassEditor.classDescription = icon.getDescription();
-//        ClassEditor.setClassIcon( icon.getIconName() );
-//        ClassEditor.componentType = icon.getComponentType();
-//        iconPalette.boundingbox.setEnabled( false );
-//        boundingbox = icon.getBoundingbox();
-//    }    
-    
     public void deleteClass() {
         File f = selectFile();
         if ( f != null )
@@ -1006,6 +955,7 @@ public class ClassEditor extends JFrame implements ChangeListener {
             System.out.println("file " + file);
             System.out.println("packageClassNamesList " + packageClassNamesList);
             System.out.println("packageClassList " + packageClassList);
+            
             ci = new ClassImport( file, packageClassNamesList, packageClassList );
             dcd.newJList( packageClassNamesList );
             dcd.setLocationRelativeTo( rootPane );
@@ -1047,15 +997,19 @@ public class ClassEditor extends JFrame implements ChangeListener {
     }  
     
     public void importClassFromPackage( File file ) {
-    	System.out.println("ClassEditor importClassFromPackage file " + file);
-        System.out.println("packageClassNamesList " + packageClassNamesList);
-        System.out.println("packageClassList " + packageClassList);
+        
         ci = new ClassImport( file, packageClassNamesList, packageClassList );
-        dcd.newJList( packageClassNamesList );
-        dcd.setLocationRelativeTo( rootPane );
-        dcd.setVisible( true );
-        dcd.repaint();
-        String selection = dcd.getSelectedValue();
+        ccd.newJList( packageClassNamesList );
+        ccd.setLocationRelativeTo( rootPane );
+        ccd.setVisible( true );
+        ccd.repaint();
+        String selection = ccd.getSelectedValue();
+//        dcd.newJList( packageClassNamesList );
+//        dcd.setLocationRelativeTo( rootPane );
+//        dcd.setVisible( true );
+//        dcd.repaint();
+//        String selection = dcd.getSelectedValue();        
+        
         System.out.println("selection " + selection);
         if ( selection == null )
             return;
@@ -1067,7 +1021,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
                 Canvas curCanvas = ClassEditor.getInstance().getCurrentCanvas();
                 ClassEditor classEditor = ClassEditor.getInstance();
                 PackageClass pClass = pkg.getClass(selection);
-                System.out.println(pClass);
                 ClassEditor.className = pClass.getName();
                 ClassEditor.classDescription = pClass.getDescription();
                 ClassEditor.classIcon = pClass.getIcon();
@@ -1082,12 +1035,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
                 	classEditor.openNewCanvasWithPackage(file);
                 }
                 
-//                ObjectList objectList = classEditor.getCurrentCanvas().getScheme().getObjectList();
-//                objectList.add(pClass.getNewInstance());
-//                classEditor.getCurrentCanvas().getScheme().setObjects(objectList);  
-                
-                
-				// TODO add ports, shapes, properties, BB
                 if (pClass.getGraphics() != null && pClass.getGraphics().getShapes() != null) {
                 	ClassGraphics classGraphics = pClass.getGraphics();
 	                BoundingBox box = new BoundingBox( classGraphics.getBoundX(), classGraphics.getBoundY(), 
@@ -1124,7 +1071,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
 							for (Shape shape : cShapes) {
 								curCanvas.mListener.addShape(shape);
 							}
-							
 	                	}
 					}
                 }
@@ -1147,9 +1093,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
     
     // TODO replace with package xml processor
     private void savePackage() {
-    	System.out.println("savePackage packageParamsOk " + packageParamsOk);
-    	System.out.println("getName() " +  ClassEditor.getInstance().packageName);
-    	System.out.println("getDescription() " + ClassEditor.getInstance().packageDesc);
         StringBuilder sb = new StringBuilder();
         sb.append( "<?xml version=\'1.0\' encoding=\'utf-8\'?>\n" );
         sb.append( "\n" );
@@ -1178,7 +1121,141 @@ public class ClassEditor extends JFrame implements ChangeListener {
                 exc.printStackTrace();
             }            
         }
-    } // savePackage    
+    } // savePackage  
+    
+    public void exportShapesToPackage() {
+        classParamsOk = true;
+        validateClassParams();
+        if ( classParamsOk ) {
+            if ( getCurrentCanvas().isBBPresent() ) {
+                saveToPackage();
+            } else {
+                JOptionPane.showMessageDialog( null, "Please define a bounding box.", "Bounding box undefined",
+                        JOptionPane.INFORMATION_MESSAGE );
+            }
+        }
+    } // exportShapesToPackage 
+
+    private void validateClassParams() {
+        if ( ClassEditor.className == null || ClassEditor.classDescription == null
+                || ClassEditor.getClassIcon() == null
+                || ClassEditor.componentType == null
+                || ( ClassEditor.className != null && ClassEditor.className.trim().length() == 0 )
+                || ( ClassEditor.classDescription != null && ClassEditor.classDescription.trim().length() == 0 )
+                || ( ClassEditor.getClassIcon() != null && ClassEditor.getClassIcon().trim().length() == 0 ) ) {
+            new ClassPropertiesDialog( dbrClassFields, false );
+        }
+    } // validateClassParams    
+    
+    public void saveToPackage() {
+    	// TODO create PackageClass and export to package
+    	// add shapes
+    	// add ports
+    	// add BB
+    	// add classfields
+    	
+    	File f = selectFile();
+    	
+    	Canvas canv = getCurrentCanvas();
+        ArrayList<GObj> selectedObjects = canv.getObjectList();
+        
+        if ( selectedObjects.size() > 0 ) {
+            
+            PackageClass pc = new PackageClass( ClassEditor.className );
+            
+            ClassGraphics cg = new ClassGraphics();
+            
+            ArrayList<Shape> shapes = new ArrayList<Shape>();
+            ArrayList<Port> ports = new ArrayList<Port>();
+            // TODO fields
+            
+            for ( GObj obj : selectedObjects ) {
+            	
+            	shapes.addAll(obj.getShapes());
+            	ports.addAll(obj.getPortList());
+            	
+            	for (Shape shape : obj.getShapes()) {
+            		shape.setX(obj.getX());
+            		shape.setY(obj.getY());
+            		System.out.println("ADD SHAPE - " + shape.toText());
+					cg.addShape(shape);
+				}
+            	for (Port port : obj.getPortList()) {
+            		pc.addPort(port);
+				}            	
+            }
+            
+            System.out.println("cg SHAPES - " + cg.getShapes());
+            
+            File packageFile = f;
+            
+            pc.setIcon( ClassEditor.getClassIcon() );
+            pc.setDescription( ClassEditor.classDescription );
+            pc.setComponentType( ClassEditor.getInstance().componentType );
+            
+            pc.addGraphics( cg );
+            
+            
+    		for ( int i = 0; i < dbrClassFields.getRowCount(); i++ ) {
+    			String fieldName = dbrClassFields.getValueAt( i, iNAME );
+    			String fieldType = dbrClassFields.getValueAt( i, iTYPE );
+    			String fieldValue = dbrClassFields.getValueAt( i, iVALUE );
+
+    			if ( fieldType != null ) {
+    				 ClassField cf = new ClassField(fieldName, fieldType, fieldValue);
+    				 pc.addField( cf );
+    			}
+    		}
+            
+            //1. Write to package
+            new PackageXmlProcessor( packageFile ).addPackageClass( pc );
+            
+            String _className = ClassEditor.className;
+            /* See if .java file exists */
+            File javaFile = new File( getPackageFile().getParent() + File.separator + _className + ".java" );
+            /* See if previews .java file exists */
+            File prevJavaFile = new File( getPackageFile().getParent() + File.separator + _className + ".java" );
+            
+
+            /* If file exists show confirmation dialog */
+            int overwriteFile = JOptionPane.YES_OPTION;
+            if ( javaFile.exists() ) {
+
+                overwriteFile = JOptionPane.showConfirmDialog( null, "Java class already exists. Overwrite?" );
+            }
+
+            if ( overwriteFile != JOptionPane.CANCEL_OPTION ) {
+                
+                if ( overwriteFile == JOptionPane.YES_OPTION ) {
+                	String fileText = null;
+                	if (prevJavaFile.exists()) {
+                		fileText = FileFuncs.getFileContents(prevJavaFile);
+                	} else {
+                		fileText = "class " + _className + " {";
+                		fileText += "\n    /*@ specification " + _className + " {\n";
+
+                		for ( int i = 0; i < dbrClassFields.getRowCount(); i++ ) {
+                			String fieldName = dbrClassFields.getValueAt( i, iNAME );
+                			String fieldType = dbrClassFields.getValueAt( i, iTYPE );
+
+                			if ( fieldType != null ) {
+                				fileText += "    " + fieldType + " " + fieldName + ";\n";
+                			}
+                		}
+                		fileText += "    }@*/\n \n}";
+                	}
+                	FileFuncs.writeFile( javaFile, fileText );
+                }
+
+                JOptionPane.showMessageDialog( null, "Saved to package: " + getPackageFile().getName(), "Saved",
+                        JOptionPane.INFORMATION_MESSAGE );
+            }
+
+        } else {
+            JOptionPane.showMessageDialog( canv, "Nothing to export!" );
+        }    	
+    }
+    
     
     /**
      * @param classIcon the classIcon to set
@@ -1192,7 +1269,8 @@ public class ClassEditor extends JFrame implements ChangeListener {
      */
     public static String getClassIcon() {
         return classIcon;
-    }    
+    }
+    
     
     /**
      * Empty the class fields table.

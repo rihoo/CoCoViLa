@@ -359,7 +359,6 @@ public class TextDialog extends JDialog {
 	 * Draw displayed text on the drawing area in the IconEditor
 	 */
 	private void drawText(int x, int y) { 
-		System.out.println("editor.getCurrentCanvas().mListener " + editor.getCurrentCanvas().mListener);
 		editor.getCurrentCanvas().mListener.drawText(font, color, taText.getText(), x, y);
 	} // drawText
 

@@ -87,6 +87,8 @@ public class ClassPropertiesDialog extends JDialog {
 
 	// Scrollpanes.
 	private JScrollPane spTableScrollPane;
+	
+	private static final int EMPTY_ROWS_LIMIT = 3;
 
 	/**
 	 * Class constructor.
@@ -298,6 +300,14 @@ public class ClassPropertiesDialog extends JDialog {
 	 */
 	private void addEmptyClassField() {
 		String[] emptyRow = {"", "", "", ""};
+		
+		if (cfTableModel.getEmptyRowsCount() >= EMPTY_ROWS_LIMIT) {
+            JOptionPane.showMessageDialog(this,
+                    "Too many empty rows.",
+                    "Empty rows limit exceeded!", JOptionPane.WARNING_MESSAGE);
+            return;
+		}
+		
 		if (tblClassFields.getRowCount() > 1 
 				&& tblClassFields.getSelectedRowCount() > 0) {
 			
@@ -343,6 +353,7 @@ public class ClassPropertiesDialog extends JDialog {
 	private void initialize() {
 		System.out.println("ClassEditor.className " + ClassEditor.className);
 		System.out.println("ClassEditor.classDescription " + ClassEditor.classDescription);
+		System.out.println("ClassEditor.componentType " + ClassEditor.componentType);
 		if (ClassEditor.className != null) fldClassName.setText(ClassEditor.className);
 		if (ClassEditor.classDescription != null) fldClassDesc.setText(ClassEditor.classDescription);
 		if (ClassEditor.getClassIcon() != null) fldClassIcon.setText(ClassEditor.getClassIcon());

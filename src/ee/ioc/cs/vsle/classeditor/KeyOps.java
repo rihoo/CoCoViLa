@@ -41,9 +41,6 @@ public class KeyOps implements KeyListener {
 			canvas.moveObjects(0, MOVE_STEP);
 		} else if (e.getKeyCode() == 72) {// event: hilight object ports, key: ctrl+h
 			canvas.hilightPorts();
-		} else if (e.getKeyCode() == 82) {	// event: open object properties, key: ctrl+r
-// FIXME			
-//			canvas.openPropertiesDialog();
 		} else if (e.getKeyCode() == 27) {	// event: escape key, return to selection
 			// setState() takes care of cancelAdding() if needed
 			canvas.mListener.setState(State.selection);

@@ -181,7 +181,7 @@ public class IconClass {
     /**
      * @param componentType the componentType to set
      */
-    void setComponentType( PackageClass.ComponentType componentType ) {
+    public void setComponentType( PackageClass.ComponentType componentType ) {
         this.componentType = componentType;
     }
 }

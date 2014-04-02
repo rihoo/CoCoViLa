@@ -1,4 +1,4 @@
-package ee.ioc.cs.vsle.iconeditor;
+package ee.ioc.cs.vsle.common.gui;
 
 import java.awt.*;
 import java.awt.event.*;

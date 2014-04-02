@@ -181,4 +181,9 @@ public class Image extends Shape {
     public String toText() {
         return "";
     }
+
+	public String getPath() {
+		return path;
+	}
+    
 }

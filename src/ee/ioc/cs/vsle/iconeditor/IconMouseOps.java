@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 
+import ee.ioc.cs.vsle.common.gui.AboutDialog;
+import ee.ioc.cs.vsle.common.gui.LicenseDialog;
 import ee.ioc.cs.vsle.editor.*;
 import ee.ioc.cs.vsle.editor.Menu;
 import ee.ioc.cs.vsle.graphics.*;

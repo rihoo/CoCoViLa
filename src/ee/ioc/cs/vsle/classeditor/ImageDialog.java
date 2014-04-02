@@ -111,12 +111,10 @@ public class ImageDialog extends JDialog implements ActionListener {
                     && relativePath != null && relativePath.length() != 0 ) {
             	
             	image = new Image( canvas.mouseX, canvas.mouseY, fullPath, relativePath, !m_jcbAllowResize.isSelected() );
-            	//image = new Image( editor.mouseX, editor.mouseY, fullPath, relativePath, !m_jcbAllowResize.isSelected() );
             }
             
             if( image != null ) {
             	canvas.mListener.addShape(image);
-                //editor.shapeList.add( image );
             	canvas.drawingArea.repaint();
                 editor.repaint();
             }
@@ -158,11 +156,7 @@ public class ImageDialog extends JDialog implements ActionListener {
             if ( returnVal == JFileChooser.APPROVE_OPTION ) {
                 File file = fc.getSelectedFile();
 
-                // TODO
-//                String packageDir = editor.getPackageFile().getParent();
                 String packageDir = editor.getCurrentPackage().getPackageDir();
-                System.out.println("packageDir " + packageDir);
-                System.out.println("file.getAbsolutePath() " + file.getAbsolutePath());
                 
                 if( !file.getAbsolutePath().startsWith( packageDir ) ) {
                     JOptionPane.showMessageDialog( editor, "Path is not relative to the package", "Error", JOptionPane.ERROR_MESSAGE );
