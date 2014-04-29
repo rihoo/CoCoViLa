@@ -1011,6 +1011,13 @@ public class ClassEditor extends JFrame implements ChangeListener {
 //        String selection = dcd.getSelectedValue();        
         
         System.out.println("selection " + selection);
+        
+        Canvas curCanvas = ClassEditor.getInstance().getCurrentCanvas();
+        
+        int classX = ( curCanvas.drawingArea.getWidth() / 2 );
+        int classY = ( curCanvas.drawingArea.getHeight() / 2 );
+        
+        
         if ( selection == null )
             return;
         
@@ -1018,7 +1025,7 @@ public class ClassEditor extends JFrame implements ChangeListener {
             VPackage pkg;
             if ( (pkg = PackageXmlProcessor.load(file)) != null ) {
                 RuntimeProperties.setLastPath( file.getAbsolutePath() );
-                Canvas curCanvas = ClassEditor.getInstance().getCurrentCanvas();
+                
                 ClassEditor classEditor = ClassEditor.getInstance();
                 PackageClass pClass = pkg.getClass(selection);
                 ClassEditor.className = pClass.getName();
@@ -1031,8 +1038,6 @@ public class ClassEditor extends JFrame implements ChangeListener {
                 if (curCanvas != null) {
                 	classEditor.getCurrentCanvas().setPackage(pkg);
                 	classEditor.updateWindowTitle();
-                } else {
-                	classEditor.openNewCanvasWithPackage(file);
                 }
                 
                 if (pClass.getGraphics() != null && pClass.getGraphics().getShapes() != null) {
@@ -1040,19 +1045,19 @@ public class ClassEditor extends JFrame implements ChangeListener {
 	                BoundingBox box = new BoundingBox( classGraphics.getBoundX(), classGraphics.getBoundY(), 
 	                		classGraphics.getBoundWidth(), classGraphics.getBoundHeight() );
 	                if (box != null) {
-	                	curCanvas.mListener.addShape(box);	
+	                	curCanvas.mListener.addShape(box, classX, classY);	
 	                	curCanvas.iconPalette.boundingbox.setEnabled( false );
 	                }                	
                 	
 					ArrayList<Shape> shapes = classGraphics.getShapes();
 					for (Shape shape : shapes) {
-						curCanvas.mListener.addShape(shape);
+						curCanvas.mListener.addShape(shape, classX, classY);
 					}
 				}
                 if (pClass.getPorts() != null) {
     				ArrayList<Port> ports = pClass.getPorts();
                     for (Port port : ports) {
-                    	curCanvas.mListener.drawPort(port);
+                    	curCanvas.mListener.drawPort(port, classX, classY);
     				}
                 }
                 
@@ -1069,7 +1074,7 @@ public class ClassEditor extends JFrame implements ChangeListener {
 	                	if (classGraphics != null) {
 		                	ArrayList<Shape> cShapes = classGraphics.getShapes();
 							for (Shape shape : cShapes) {
-								curCanvas.mListener.addShape(shape);
+								curCanvas.mListener.addShape(shape, classX, classY);
 							}
 	                	}
 					}

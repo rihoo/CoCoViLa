@@ -209,9 +209,7 @@ public class GObj implements Serializable, Cloneable,
 
     @Override
     public String toString() {
-        // FIXME
-    	// return getName();
-    	return  getName() + "[x,y="+getX()+","+getY()+"], [width,height="+getWidth()+","+getHeight()+"]";
+    	 return getName();
     }
 
     public boolean isStrict() {

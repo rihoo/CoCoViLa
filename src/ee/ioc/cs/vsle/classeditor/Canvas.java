@@ -54,7 +54,6 @@ import ee.ioc.cs.vsle.graphics.BoundingBox;
 import ee.ioc.cs.vsle.graphics.Shape;
 import ee.ioc.cs.vsle.packageparse.PackageXmlProcessor;
 import ee.ioc.cs.vsle.util.PrintUtilities;
-import ee.ioc.cs.vsle.util.VMath;
 import ee.ioc.cs.vsle.util.db;
 import ee.ioc.cs.vsle.vclass.ClassPainter;
 import ee.ioc.cs.vsle.vclass.Connection;
@@ -1387,7 +1386,7 @@ public class Canvas extends JPanel implements ISchemeContainer {
 
         @Override
         protected void paintComponent( Graphics g ) {
-        	System.out.println("Drawing area paintComponent " + mListener.state);
+//        	System.out.println("Drawing area paintComponent " + mListener.state);
             Connection rel;
             Graphics2D g2 = (Graphics2D) g;
 

@@ -165,14 +165,14 @@ public class MouseOps extends MouseInputAdapter {
         canvas.repaint();
     } // drawPort
     
-    public void drawPort( Port p ) {
+    public void drawPort( Port p, int xOffset, int yOffset ) {
         ArrayList<Port> ports = new ArrayList<Port>();
         ports.add(p);
         
         GObj obj = new GObj();
         p.setObject(obj);
-        obj.setX(0);
-        obj.setY(0);
+        obj.setX(xOffset);
+        obj.setY(yOffset);
         
         obj.setHeight(p.getHeight());
         obj.setWidth(p.getWidth());     
@@ -240,15 +240,29 @@ public class MouseOps extends MouseInputAdapter {
     } // changeStrokeWidth    
     
     public void addShape(Shape s) {
-        ArrayList<Shape> shapes = new ArrayList<Shape>();
-        shapes.add(s);
-        GObj obj = new GObj();
+    	addShape(s, 0, 0);
+    }
+    
+    public void addShape(Shape s, int xOffset, int yOffset) {
+
         System.out.println("1. shape " + s.toText());
         System.out.println("2. addShape x " + s.getX() + " y " + s.getY() + " h " + s.getHeight() + " w " + s.getWidth());
-        obj.setX(s.getX());
-        obj.setY(s.getY());
+
+        ArrayList<Shape> shapes = new ArrayList<Shape>();
+        shapes.add(s);
+
+        GObj obj = new GObj();        
+        obj.setX(s.getX() + xOffset);
+        obj.setY(s.getY() + yOffset);
         obj.setHeight(s.getHeight());
         obj.setWidth(s.getWidth()); 
+        
+        if (s instanceof Rect || s instanceof Oval || s instanceof Arc
+        		|| s instanceof BoundingBox) {
+            if (s.getHeight() == 0 || s.getWidth() == 0) {
+            	return;
+            }        	
+        }
         
         if (s instanceof Rect || s instanceof Oval || s instanceof Arc
         		|| s instanceof BoundingBox || s instanceof Text || s instanceof Image) {
@@ -258,9 +272,9 @@ public class MouseOps extends MouseInputAdapter {
         else if (s instanceof Line) {
         	int minX = Math.min( ((Line) s).getStartX(), ((Line) s).getEndX() );
         	int minY = Math.min( ((Line) s).getStartY(), ((Line) s).getEndY()  );
-
-        	obj.setX(minX);
-            obj.setY(minY);
+        	
+        	if (xOffset == 0) obj.setX(minX);
+        	if (yOffset == 0) obj.setY(minY);
             
             double k = ((Line) s).getK();
 
@@ -281,8 +295,10 @@ public class MouseOps extends MouseInputAdapter {
         System.out.println("////////// shape " + s.toText());
   
         if (s instanceof Text) {
-        	obj.setHeight(15);
-            obj.setWidth(50); 
+//        	obj.setHeight(15);
+//            obj.setWidth(50); 
+        	obj.setHeight(75);
+            obj.setWidth(75); 
         }
         
         obj.setName(s.getClass().getName());
